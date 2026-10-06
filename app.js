@@ -235,13 +235,15 @@ dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 $('#bkForm').addEventListener('submit', async e => {
   e.preventDefault();
   const f = e.target, fd = new FormData(f), err = $('#bkErr');
-  const d = { name: (fd.get('name') || '').trim(), phone: (fd.get('phone') || '').trim(), email: (fd.get('email') || '').trim(), website: (fd.get('website') || '').trim(), notes: (fd.get('notes') || '').trim(), lang, source: 'one-arise-website' };
+  const d = { name: (fd.get('name') || '').trim(), phone: (fd.get('phone') || '').trim(), email: (fd.get('email') || '').trim(), website: (fd.get('website') || '').trim(), notes: (fd.get('notes') || '').trim(), source: 'one-arise-website' };
   $$('input', f).forEach(i => i.classList.remove('bad'));
   const bad = [];
   if (!d.name) bad.push('name'); if (!d.phone) bad.push('phone'); if (!/^\S+@\S+\.\S+$/.test(d.email)) bad.push('email');
   if (bad.length) { bad.forEach(n => f.elements[n].classList.add('bad')); err.textContent = T('Please add your name, phone and a valid email.', 'يرجى إدخال الاسم والهاتف وبريد إلكتروني صحيح.'); f.elements[bad[0]].focus(); return; }
   err.textContent = ''; const btn = $('#bkSub'), bt = $('.bt', btn); btn.disabled = true; btn.classList.add('loading'); bt.textContent = T('Saving…', 'جارٍ الحفظ…');
-  try { await Promise.race([fetch(CONFIG.sheetEndpoint, { method: 'POST', mode: 'no-cors', keepalive: true, body: new URLSearchParams(d) }), wait(3500)]); } catch (x) {}
+  const payload = new URLSearchParams(d); let queued = false;
+  try { queued = navigator.sendBeacon && navigator.sendBeacon(CONFIG.sheetEndpoint, payload); } catch (x) {}
+  if (!queued) { try { await Promise.race([fetch(CONFIG.sheetEndpoint, { method: 'POST', mode: 'no-cors', keepalive: true, body: payload }), wait(1200)]); } catch (x) {} }
   let framed = false; try { framed = window.self !== window.top; } catch (x) { framed = true; }
   if (!framed) {
     bt.textContent = T('Opening calendar…', 'جارٍ فتح التقويم…');
