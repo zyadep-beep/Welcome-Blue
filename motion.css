@@ -234,3 +234,17 @@ html[dir=rtl] .btn .bt::after{content:"←";transform:translateX(8px)}
 .statement .st-text{text-shadow:0 2px 26px rgba(7,9,15,.9)}
 .stairs .st-t,.stairs .st-d{text-shadow:0 1px 16px rgba(7,9,15,.9)}
 .stairs .st-d{color:var(--mut)}
+
+
+/* ===== mobile fit + performance ===== */
+html,body{overflow-x:hidden;overflow-x:clip;max-width:100%}
+.big-pin,.stairs,.hz,.tri,.hero,.sec-dark,.cta{overflow-x:clip}
+@media (max-width:760px){
+  .nav.solid{background:rgba(7,9,15,.94);backdrop-filter:none;-webkit-backdrop-filter:none}
+  .bottombar{background:rgba(7,9,15,.95)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .marquee{background:rgba(12,16,24,.92);backdrop-filter:none}
+  .hz-card{background:linear-gradient(160deg,rgba(15,20,29,.97),rgba(7,9,15,.92));backdrop-filter:none}
+  .sec-dark{background:rgba(10,14,22,.88);backdrop-filter:none}
+  .btn-ghost{backdrop-filter:none}
+  .hz-pic img{transition:none}
+}

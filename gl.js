@@ -1,5 +1,5 @@
 // One Arise — golden particle field (Three.js)
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js';
 
 const canvas = document.getElementById('gl');
 const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -8,7 +8,7 @@ const mobile = innerWidth < 760;
 let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' }); }
 catch (e) { canvas.classList.add('nogl'); throw e; }
-renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.5 : 1.75));
+renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 1.75));
 renderer.setSize(innerWidth, innerHeight);
 renderer.setClearColor(0x000000, 0);
 
@@ -68,7 +68,7 @@ const streamMat = new THREE.ShaderMaterial({
 scene.add(new THREE.Points(sg, streamMat));
 
 /* ---------- dust nebula ---------- */
-const DN = mobile ? 900 : 2200;
+const DN = mobile ? 600 : 2200;
 const dp = new Float32Array(DN * 3), dr = new Float32Array(DN), dc = new Float32Array(DN);
 for (let i = 0; i < DN; i++) {
   const R = 4 + Math.pow(Math.random(), 0.7) * 34, th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
@@ -116,7 +116,7 @@ const core2 = mkSprite(coreTex, 34, -38, 0.35);
 // warm nebula fog clouds
 const fogTex = glowTex([[0, 'rgba(24,48,96,.22)'], [0.5, 'rgba(18,36,80,.09)'], [1, 'rgba(0,0,0,0)']]);
 const fogs = [];
-for (let i = 0; i < 7; i++) { const f = mkSprite(i % 3 === 0 ? redTex : fogTex, 26 + Math.random() * 30, -20 - Math.random() * 20, 0.5); f.userData = { x: (Math.random() - .5) * 40, y: (Math.random() - .5) * 20, ph: Math.random() * 6 }; fogs.push(f); }
+for (let i = 0; i < (mobile ? 4 : 7); i++) { const f = mkSprite(i % 3 === 0 ? redTex : fogTex, 26 + Math.random() * 30, -20 - Math.random() * 20, 0.5); f.userData = { x: (Math.random() - .5) * 40, y: (Math.random() - .5) * 20, ph: Math.random() * 6 }; fogs.push(f); }
 
 // streaks: thin stretched sprites drifting
 const streakTex = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 16; const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,220,150,0)'); g.addColorStop(.5, 'rgba(255,225,160,.9)'); g.addColorStop(1, 'rgba(255,220,150,0)'); x.fillStyle = g; x.fillRect(0, 6, 256, 4); const t = new THREE.CanvasTexture(c); return t; })();
@@ -131,7 +131,8 @@ for (let i = 0; i < (mobile ? 6 : 12); i++) {
 /* ---------- interaction ---------- */
 const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
 addEventListener('pointermove', e => { mouse.tx = (e.clientX / innerWidth - .5) * 2; mouse.ty = (e.clientY / innerHeight - .5) * 2; }, { passive: true });
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+let lastW = innerWidth, lastH = innerHeight;
+addEventListener('resize', () => { if (innerWidth === lastW && Math.abs(innerHeight - lastH) < 160) return; lastW = innerWidth; lastH = innerHeight; camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
 let scrollP = 0, fade = 1, visible = true;
 window.__gl = {
@@ -142,9 +143,11 @@ document.addEventListener('visibilitychange', () => visible = !document.hidden);
 
 const clock = new THREE.Clock();
 let t = 0;
+let frameSkip = false;
 function frame() {
   requestAnimationFrame(frame);
   if (!visible) return;
+  if (mobile) { frameSkip = !frameSkip; if (frameSkip) return; }
   const dt = Math.min(clock.getDelta(), 0.05);
   t += reduce ? 0 : dt;
   mouse.x += (mouse.tx - mouse.x) * 0.04; mouse.y += (mouse.ty - mouse.y) * 0.04;

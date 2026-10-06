@@ -6,6 +6,7 @@
   const isAr = () => document.documentElement.lang === 'ar';
   const html = document.documentElement;
   const hasG = !!(window.gsap && window.ScrollTrigger);
+  if (hasG) { try { ScrollTrigger.config({ ignoreMobileResize: true }); } catch (e) {} }
 
   function finishLoader() { const l = $('#loader'); if (l) l.classList.add('gone'); html.classList.remove('is-loading'); html.classList.add('is-ready'); }
   if (!hasG || reduce) { finishLoader(); $$('.h-fade').forEach(e => e.style.opacity = 1); $$('.cnt').forEach(e => e.textContent = e.dataset.to); return; }
