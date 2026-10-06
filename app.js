@@ -242,6 +242,12 @@ $('#bkForm').addEventListener('submit', async e => {
   if (bad.length) { bad.forEach(n => f.elements[n].classList.add('bad')); err.textContent = T('Please add your name, phone and a valid email.', 'يرجى إدخال الاسم والهاتف وبريد إلكتروني صحيح.'); f.elements[bad[0]].focus(); return; }
   err.textContent = ''; const btn = $('#bkSub'), bt = $('.bt', btn); btn.disabled = true; btn.classList.add('loading'); bt.textContent = T('Saving…', 'جارٍ الحفظ…');
   try { await Promise.race([fetch(CONFIG.sheetEndpoint, { method: 'POST', mode: 'no-cors', keepalive: true, body: new URLSearchParams(d) }), wait(3500)]); } catch (x) {}
+  let framed = false; try { framed = window.self !== window.top; } catch (x) { framed = true; }
+  if (!framed) {
+    bt.textContent = T('Opening calendar…', 'جارٍ فتح التقويم…');
+    window.addEventListener('pageshow', ev => { if (ev.persisted) location.reload(); }, { once: true });
+    window.location.href = CONFIG.calendar; return;
+  }
   btn.disabled = false; btn.classList.remove('loading'); bt.textContent = tr('fSub');
   f.hidden = true; $('#bkDone').hidden = false; $('#st2').classList.add('on'); f.reset();
 });
