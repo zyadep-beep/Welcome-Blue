@@ -77,16 +77,9 @@
   let ctx;
   function build() {
     ctx = gsap.context(() => {
-      // hero → GL camera dolly + hero content parallax
-      ScrollTrigger.create({ trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true,
-        onUpdate: s => { window.__gl && window.__gl.setScroll(s.progress); } });
+      // hero content parallax
       gsap.to('.hero-in', { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true } });
-      // GL fade per section
-      const fadeAt = (sel, f) => ScrollTrigger.create({ trigger: sel, start: 'top 60%', end: 'bottom 40%', onToggle: s => s.isActive && window.__gl && window.__gl.setFade(f) });
-      fadeAt('#hero', 1); fadeAt('#tri', 0.2); fadeAt('#about', 0.3); fadeAt('#services', 0.25); fadeAt('#demo', 0.15); fadeAt('#process', 0.55); fadeAt('#results', 0.8); fadeAt('#contact', 0.4);
 
-      // triptych
-      triptych();
 
       // statement words scrub
       const st = splitWords($('#stText'));
@@ -131,16 +124,6 @@
         return () => { $('#hzTrack').style.cssText = ''; };
       });
 
-      // big 24/7
-      const bt = gsap.timeline({ scrollTrigger: { trigger: '.big-pin', start: 'top top', end: '+=120%', pin: true, scrub: 1 } });
-      bt.fromTo('.big-num', { scale: 0.5, opacity: 0.5 }, { scale: 1, opacity: 1, ease: 'power2.out' })
-        .fromTo('.big-cuts', { strokeWidth: 26 }, { strokeWidth: 7, ease: 'power2.out' }, 0)
-        .fromTo('.big-fill', { attr: { y: 220 } }, { attr: { y: 0 }, ease: 'power2.inOut' }, 0)
-        .from('.big-side.l', { x: () => -innerWidth * 0.3, opacity: 0, ease: 'power3.out' }, 0.25)
-        .from('.big-side.r', { x: () => innerWidth * 0.3, opacity: 0, ease: 'power3.out' }, 0.25);
-      ScrollTrigger.create({ trigger: '.nums', start: 'top 85%', once: true, onEnter: () => $$('.nums .cnt').forEach(e => window.countUp ? window.countUp(e) : (e.textContent = e.dataset.to)) });
-      gsap.from('.nums > div', { y: 50, opacity: 0, stagger: 0.1, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: '.nums', start: 'top 85%' } });
-
       // images parallax
       $$('.cta-img img').forEach(img => gsap.fromTo(img, { scale: 1.2, yPercent: -6 }, { scale: 1.05, yPercent: 6, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }));
       gsap.from('.cta-img', { clipPath: 'inset(100% 0 0 0)', duration: 1.4, ease: 'expo.inOut', scrollTrigger: { trigger: '.cta-img', start: 'top 80%' } });
@@ -151,40 +134,10 @@
       // bottom bar progress + active tag
       ScrollTrigger.create({ start: 0, end: 'max', onUpdate: s => gsap.set('#prog', { scaleX: s.progress }) });
       const tags = $$('.bb-tags span');
-      [['#hero', 0], ['#services', 1], ['#demo', 0], ['#process', 2], ['#results', 3]].forEach(([sel, i]) => ScrollTrigger.create({ trigger: sel, start: 'top 50%', end: 'bottom 50%', onToggle: s => { if (s.isActive) tags.forEach((t, k) => t.classList.toggle('on', k === i)); } }));
+      [['#hero', 0], ['#services', 1], ['#demo', 0], ['#process', 2], ['#contact', 3]].forEach(([sel, i]) => ScrollTrigger.create({ trigger: sel, start: 'top 50%', end: 'bottom 50%', onToggle: s => { if (s.isActive) tags.forEach((t, k) => t.classList.toggle('on', k === i)); } }));
     });
   }
   const ctxTickers = [];
-
-  /* ---------- triptych ---------- */
-  function triptych() {
-    const stage = $('#triStage'), arches = $$('.arch', stage), imgs = arches.map(a => $('img', a));
-    const st = { p: 0 };
-    const lerp = (a, b, t) => a + (b - a) * t;
-    function render() {
-      const W = stage.clientWidth, H = stage.clientHeight, mob = W < 760;
-      const w0 = mob ? W * 0.27 : Math.min(W * 0.17, 280), h0 = w0 * (mob ? 1.9 : 1.75), g0 = w0 * (mob ? 0.1 : 0.2);
-      const e = gsap.parseEase('power2.inOut')(st.p);
-      const w = lerp(w0, W / 3 + 1, e), h = lerp(h0, H, e), g = lerp(g0, 0, e), r = lerp(w0 / 2, 0, e);
-      const total = 3 * w + 2 * g, x0 = (W - total) / 2, y = (H - h) / 2;
-      arches.forEach((a, i) => {
-        const x = x0 + i * (w + g);
-        a.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;border-radius:${r}px ${r}px 0 0`;
-        imgs[i].style.cssText = `width:${W}px;height:${H}px;left:${-x}px;top:${-y}px;transform:scale(${lerp(1.25, 1, e)})`;
-      });
-    }
-    render();
-    addEventListener('resize', render);
-    const head = new SplitText('#triH > *', { type: 'words', wordsClass: 'w', mask: 'words' }); splits.push(head);
-    const tl = gsap.timeline({ scrollTrigger: { trigger: '#tri', start: 'top top', end: '+=260%', pin: true, scrub: 1, anticipatePin: 1 } });
-    tl.from(arches, { yPercent: 40, opacity: 0, stagger: 0.08, duration: 0.25, ease: 'power3.out' }, 0)
-      .from(head.words, { yPercent: 110, stagger: 0.03, duration: 0.25, ease: 'power3.out' }, 0.05)
-      .to('.arch-l', { opacity: 0, duration: 0.1 }, 0.42)
-      .to(head.words, { yPercent: -110, stagger: 0.02, duration: 0.2, ease: 'power2.in' }, 0.45)
-      .to(st, { p: 1, duration: 0.5, ease: 'none', onUpdate: render }, 0.4)
-      .to('#triEnd', { opacity: 1, y: -20, duration: 0.2 }, 0.85)
-      .to({}, { duration: 0.15 });
-  }
 
   /* ---------- cursor + magnetic ---------- */
   function cursor() {
